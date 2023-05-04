@@ -17,3 +17,22 @@ def create_image_prompt(product_name: str, visual_features: str, prompt_number=3
     completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}], temperature=0.2)
     response = completion["choices"][0]["message"]["content"]
     return response
+
+def create_prompt_for_post(post:str, network:str) -> str:
+    """Calculate prompt given a post
+    Args:
+        post (str): instagram/tiktok post
+        network (str): instagram or tiktok
+    Returns:
+        url: str
+    """
+    prompt = "I have this {} post: {}. Can you give me just one short suggestsion on photos to go along with \
+                these posts? \nPlease format the response as \"Suggestion: "
+    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}], temperature=0.2)
+    response = completion["choices"][0]["message"]["content"].replace("Suggestion: ", "")
+    response = openai.Image.create(prompt=prompt,n=1,size="512x512",response_format="url")
+    return response["data"][0]["url"]
+
+
+    
+    
