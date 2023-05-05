@@ -54,6 +54,19 @@ def generate_content_post_prompt(content_brief, network_type, guideline):
     #     f"Prompts Descriptions: {st.session_state.content_post}"
     # )
 
+def create_post_img_url(post:str, network_type:str) -> str:
+    prompt = "I have this {} post: {}. Can you give me just one short suggestsion on photos to go along with \
+                    these posts? \nPlease format the response as \"Suggestion: ".format(network_type, post)
+    openai = oai.Openai()
+    completion = (
+        openai.complete(prompt, "gpt-3.5-turbo", temperature=0.2).strip().replace('"', "")
+    )
+    completion = completion.replace("Suggestion: ", "")
+    logging.info("completion: {}".format(completion))
+    st.session_state.text_error = ""
+    st.session_state.post_img_url = openai.image(completion)
+
+
 
 def generate_post_text(content_post, network_type):
     if network_type == "":
@@ -108,6 +121,8 @@ if "content_post" not in st.session_state:
     st.session_state.content_post = ""
 if "post_text" not in st.session_state:
     st.session_state.post_text = ""
+if "post_img_url" not in st.session_state:
+    st.session_state.post_img_url = ""
 if "image" not in st.session_state:
     st.session_state.image = ""
 if "text_error" not in st.session_state:
@@ -118,6 +133,10 @@ if "feeling_lucky" not in st.session_state:
     st.session_state.feeling_lucky = False
 if "content_post_btn" not in st.session_state:
     st.session_state.content_post_btn = False
+if "post_text_btn" not in st.session_state:
+    st.session_state.post_text_btn = False
+if "post_img_url_btn" not in st.session_state:
+    st.session_state.post_img_url_btn = False
 if "n_requests" not in st.session_state:
     st.session_state.n_requests = 0
 
@@ -170,14 +189,14 @@ with col1:
 
 if st.session_state.content_post:
     st.markdown("""---""")
-    st.text_area(label="Content Post", value=st.session_state.content_post, height=150)
+    st.text_area(label="Prompt", value=st.session_state.content_post, height=150)
 
 # Post Text
 if st.session_state.content_post:
     st.title("Generate Post Text Prompts")
     col1, = st.columns(1)
     with col1:
-        st.session_state.feeling_lucky = not st.button(
+        st.session_state.post_text_btn = not st.button(
             label="Generate Post Text",
             type="primary",
             on_click=generate_post_text,
@@ -188,6 +207,61 @@ if st.session_state.content_post:
         st.markdown("""---""")
         st.text_area(label="Post Text", value=st.session_state.post_text, height=150)
 
+# Post Text Image
+if st.session_state.post_text:
+    st.title("Post Text Image")
+    col1, = st.columns(1)
+    with col1:
+        st.session_state.post_img_url_btn = not st.button(
+            label="Generate Post Image",
+            type="primary",
+            on_click=create_post_img_url,
+            args=(st.session_state.post_text, network_type),
+        )
+
+    if st.session_state.post_img_url:
+        st.markdown("""---""")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.write(' ')
+        with col2:
+            st.image(st.session_state.post_img_url)
+        with col3:
+            st.write(' ')
+
 text_spinner_placeholder = st.empty()
 if st.session_state.text_error:
     st.error(st.session_state.text_error)
+
+# Acknowledgement
+st.title("Acknowledgement")
+imgs = [
+    {'url': './assets/cristin.jpeg', 'caption': 'Cristin'},
+    {'url': './assets/fizza.jpeg', 'caption': 'Fizza'},
+    {'url': './assets/deveter.jpeg', 'caption': 'Deveter'},
+    {'url': './assets/chirag.jpeg', 'caption': 'Chirag'},
+    {'url': './assets/mir.jpeg', 'caption': 'Mir'},
+    {'url': './assets/liang.jpeg', 'caption': 'Liang'},
+    {'url': './assets/kenan.jpeg', 'caption': 'Kenan'},
+    {'url': './assets/yongbaek.jpeg', 'caption': 'Yongbaek'},
+]
+idx = 0
+for _ in range(len(imgs) - 1):
+    cols = st.columns(4)
+
+    if idx < len(imgs):
+        cols[0].image(imgs[idx]['url'], caption=imgs[idx]['caption'])
+    idx += 1
+
+    if idx < len(imgs):
+        cols[1].image(imgs[idx]['url'], caption=imgs[idx]['caption'])
+    idx += 1
+
+    if idx < len(imgs):
+        cols[2].image(imgs[idx]['url'], caption=imgs[idx]['caption'])
+    idx += 1
+    if idx < len(imgs):
+        cols[3].image(imgs[idx]['url'], caption=imgs[idx]['caption'])
+        idx = idx + 1
+    else:
+        break
