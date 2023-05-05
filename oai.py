@@ -41,7 +41,7 @@ class Openai:
         prompt: str,
         model: str = "text-davinci-003",
         temperature: float = 0.9,
-        max_tokens: int = 50,
+        max_tokens: int = 500,
     ) -> str:
         """Call OpenAI GPT Completion with text prompt.
         Args:
